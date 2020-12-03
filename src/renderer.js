@@ -8,11 +8,17 @@ class Renderer {
     this.browser = browser;
   }
 
-  async html(url, options = {}, authorization = "") {
+  async html(url, options = {}, authorization = "", post = true, body = "") {
     let page = null;
     try {
       const { timeout, waitUntil, credentials } = options;
-      page = await this.createPage(url, { timeout, waitUntil, credentials }, authorization);
+      page = await this.createPage(
+        url,
+        { timeout, waitUntil, credentials },
+        authorization,
+        post,
+        body
+      );
       const html = await page.content();
       return html;
     } finally {
@@ -20,7 +26,7 @@ class Renderer {
     }
   }
 
-  async pdf(url, options = {}, authorization = "") {
+  async pdf(url, options = {}, authorization = "", post = true, body = "") {
     let page = null;
     try {
       const {
@@ -30,12 +36,18 @@ class Renderer {
         emulateMediaType,
         ...extraOptions
       } = options;
-      page = await this.createPage(url, {
-        timeout,
-        waitUntil,
-        credentials,
-        emulateMediaType: emulateMediaType || "print",
-      }, authorization);
+      page = await this.createPage(
+        url,
+        {
+          timeout,
+          waitUntil,
+          credentials,
+          emulateMediaType: emulateMediaType || "print",
+        },
+        authorization,
+        post,
+        body
+      );
 
       const {
         scale = 1.0,
@@ -56,11 +68,17 @@ class Renderer {
     }
   }
 
-  async screenshot(url, options = {}, authorization = "") {
+  async screenshot(url, options = {}, authorization = "", post = true, body = "") {
     let page = null;
     try {
       const { timeout, waitUntil, credentials, ...extraOptions } = options;
-      page = await this.createPage(url, { timeout, waitUntil, credentials }, authorization);
+      page = await this.createPage(
+        url,
+        { timeout, waitUntil, credentials },
+        authorization,
+        post,
+        body
+      );
       page.setViewport({
         width: Number(extraOptions.width || 800),
         height: Number(extraOptions.height || 600),
@@ -98,22 +116,27 @@ class Renderer {
     }
   }
 
-  async createPage(url, options = {}, authorization = "") {
+  async createPage(url, options = {}, authorization = "", post = false, encodedPostData = "") {
     const { timeout, waitUntil, credentials, emulateMediaType } = options;
     const page = await this.browser.newPage();
 
-        page.on("error", async (error) => {
+    page.on("error", async (error) => {
       console.error(error);
       await this.closePage(page);
     });
 
     page.setRequestInterception(true);
-    page.on('request', request => {
+    page.on("request", (request) => {
       const headers = request.headers();
-      if (authorization != "") {
-        headers['Authorization'] = authorization;
+      const overrides = { headers: headers };
+      if (post == 'true') {
+        overrides.method = "POST";
+        overrides.postData = decodeURIComponent(encodedPostData);
       }
-      request.continue({ headers });
+      if (authorization != "") {
+        headers["Authorization"] = authorization;
+      }
+      request.continue(overrides);
     });
 
     if (emulateMediaType) {
@@ -146,7 +169,6 @@ class Renderer {
 
 async function create(options = {}) {
   const browser = await puppeteer.launch(
-    
     Object.assign({ args: ["--no-sandbox"] }, options)
   );
   return new Renderer(browser);

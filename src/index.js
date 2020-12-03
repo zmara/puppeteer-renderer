@@ -18,7 +18,7 @@ app.disable("x-powered-by");
 
 // Render url.
 app.use(async (req, res, next) => {
-  let { url, type, filename, authorization, ...options } = req.query;
+  let { url, type, filename, authorization, post, body, ...options } = req.query;
 
   if (!url) {
     return res
@@ -48,7 +48,7 @@ app.use(async (req, res, next) => {
           filename += ".pdf";
         }
         const { contentDispositionType, ...pdfOptions } = options;
-        const pdf = await renderer.pdf(url, pdfOptions, authorization);
+        const pdf = await renderer.pdf(url, pdfOptions, authorization, post, body);
         res
           .set({
             "Content-Type": "application/pdf",
@@ -64,7 +64,9 @@ app.use(async (req, res, next) => {
         const { screenshotType, buffer } = await renderer.screenshot(
           url,
           options,
-          authorization
+          authorization,
+          post,
+          body
         );
         res
           .set({
@@ -75,7 +77,7 @@ app.use(async (req, res, next) => {
         break;
 
       default:
-        const html = await renderer.html(url, options, authorization);
+        const html = await renderer.html(url, options, authorization, body);
         res.status(200).send(html);
     }
   } catch (e) {
