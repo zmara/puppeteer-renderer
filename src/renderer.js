@@ -8,11 +8,11 @@ class Renderer {
     this.browser = browser;
   }
 
-  async html(url, options = {}) {
+  async html(url, options = {}, authorization = "") {
     let page = null;
     try {
       const { timeout, waitUntil, credentials } = options;
-      page = await this.createPage(url, { timeout, waitUntil, credentials });
+      page = await this.createPage(url, { timeout, waitUntil, credentials }, authorization);
       const html = await page.content();
       return html;
     } finally {
@@ -20,7 +20,7 @@ class Renderer {
     }
   }
 
-  async pdf(url, options = {}) {
+  async pdf(url, options = {}, authorization = "") {
     let page = null;
     try {
       const {
@@ -35,7 +35,7 @@ class Renderer {
         waitUntil,
         credentials,
         emulateMediaType: emulateMediaType || "print",
-      });
+      }, authorization);
 
       const {
         scale = 1.0,
@@ -56,11 +56,11 @@ class Renderer {
     }
   }
 
-  async screenshot(url, options = {}) {
+  async screenshot(url, options = {}, authorization = "") {
     let page = null;
     try {
       const { timeout, waitUntil, credentials, ...extraOptions } = options;
-      page = await this.createPage(url, { timeout, waitUntil, credentials });
+      page = await this.createPage(url, { timeout, waitUntil, credentials }, authorization);
       page.setViewport({
         width: Number(extraOptions.width || 800),
         height: Number(extraOptions.height || 600),
@@ -98,13 +98,22 @@ class Renderer {
     }
   }
 
-  async createPage(url, options = {}) {
+  async createPage(url, options = {}, authorization = "") {
     const { timeout, waitUntil, credentials, emulateMediaType } = options;
     const page = await this.browser.newPage();
 
-    page.on("error", async (error) => {
+        page.on("error", async (error) => {
       console.error(error);
       await this.closePage(page);
+    });
+
+    page.setRequestInterception(true);
+    page.on('request', request => {
+      const headers = request.headers();
+      if (authorization != "") {
+        headers['Authorization'] = authorization;
+      }
+      request.continue({ headers });
     });
 
     if (emulateMediaType) {
@@ -137,6 +146,7 @@ class Renderer {
 
 async function create(options = {}) {
   const browser = await puppeteer.launch(
+    
     Object.assign({ args: ["--no-sandbox"] }, options)
   );
   return new Renderer(browser);
