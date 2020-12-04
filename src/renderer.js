@@ -134,7 +134,7 @@ class Renderer {
     page.on("request", (request) => {
       const headers = request.headers();
       const overrides = { headers: headers };
-      if (post == true) {
+      if (post == true && request.resourceType() == "document") {
         overrides.method = "POST";
         overrides.postData = JSON.stringify(postData);
         headers["Content-Type"] =  "application/json"

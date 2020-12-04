@@ -22,7 +22,7 @@ app.disable("x-powered-by");
 
 // Render url.
 app.use(async (req, res, next) => {
-  let { url, type, filename, authorization, ...options } = req.query;
+  let { url, type, filename, authorization,  ...options } = req.query;
   let post = req.method == "POST";
   let body = req.body;
   if (!url) {
