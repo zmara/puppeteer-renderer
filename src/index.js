@@ -1,6 +1,7 @@
 "use strict";
 
 const express = require("express");
+var cors = require('cors')
 const qs = require("qs");
 const { URL } = require("url");
 const contentDisposition = require("content-disposition");
@@ -9,6 +10,7 @@ const createRenderer = require("./renderer");
 const port = process.env.PORT || 3000;
 
 const app = express();
+app.use(cors())
 
 let renderer = null;
 
