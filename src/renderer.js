@@ -3,6 +3,8 @@
 const puppeteer = require("puppeteer");
 const waitForAnimations = require("./wait-for-animations");
 
+
+
 class Renderer {
   constructor(browser) {
     this.browser = browser;
@@ -116,7 +118,9 @@ class Renderer {
     }
   }
 
-  async createPage(url, options = {}, authorization = "", post = false, encodedPostData = "") {
+
+
+  async createPage(url, options = {}, authorization = "", post = false, postData = "") {
     const { timeout, waitUntil, credentials, emulateMediaType } = options;
     const page = await this.browser.newPage();
 
@@ -126,12 +130,14 @@ class Renderer {
     });
 
     page.setRequestInterception(true);
+
     page.on("request", (request) => {
       const headers = request.headers();
       const overrides = { headers: headers };
-      if (post == 'true') {
+      if (post == true) {
         overrides.method = "POST";
-        overrides.postData = decodeURIComponent(encodedPostData);
+        overrides.postData = JSON.stringify(postData);
+        headers["Content-Type"] =  "application/json"
       }
       if (authorization != "") {
         headers["Authorization"] = authorization;

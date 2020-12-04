@@ -3,6 +3,7 @@
 const express = require("express");
 var cors = require('cors')
 const qs = require("qs");
+const bodyParser = require('body-parser');
 const { URL } = require("url");
 const contentDisposition = require("content-disposition");
 const createRenderer = require("./renderer");
@@ -11,6 +12,7 @@ const port = process.env.PORT || 3000;
 
 const app = express();
 app.use(cors())
+app.use(bodyParser.json());
 
 let renderer = null;
 
@@ -20,8 +22,9 @@ app.disable("x-powered-by");
 
 // Render url.
 app.use(async (req, res, next) => {
-  let { url, type, filename, authorization, post, body, ...options } = req.query;
-
+  let { url, type, filename, authorization, ...options } = req.query;
+  let post = req.method == "POST";
+  let body = req.body;
   if (!url) {
     return res
       .status(400)
@@ -95,6 +98,7 @@ app.use((err, req, res, next) => {
 
 // Create renderer and start server.
 createRenderer({
+  headless: true,
   ignoreHTTPSErrors: true
 })
   .then((createdRenderer) => {
