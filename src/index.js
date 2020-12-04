@@ -93,7 +93,7 @@ app.use((err, req, res, next) => {
 
 // Create renderer and start server.
 createRenderer({
-  ignoreHTTPSErrors: !!process.env.IGNORE_HTTPS_ERRORS
+  ignoreHTTPSErrors: true
 })
   .then((createdRenderer) => {
     renderer = createdRenderer;
