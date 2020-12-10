@@ -80,6 +80,7 @@ app.post("/", async (req, res, next) => {
     }
     const { contentDispositionType, ...pdfOptions } = options;
     const pdf = await renderer.pdf("http://localhost:" + port + "?key=" + uuid, pdfOptions, authorization, post, body);
+    delete htmlCache[uuid];
     res
       .set({
         "Content-Type": "application/pdf",
