@@ -8,7 +8,7 @@ const { URL } = require("url");
 const contentDisposition = require("content-disposition");
 const createRenderer = require("./renderer");
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4300;
 
 const app = express();
 app.use(cors())
@@ -20,9 +20,44 @@ let renderer = null;
 app.set("query parser", (s) => qs.parse(s, { allowDots: true }));
 app.disable("x-powered-by");
 
+const htmlCache = {};
+
+function addToCache(key, html) {
+  const now = new Date();
+  htmlCache[key] = {
+    html: html,
+    validUntil: now.setTime(now.getTime() + (1 * 60 * 60 * 1000))
+  };
+}
+
+function checkCacheValidity() {
+  Object.keys(htmlCache).forEach(key => {
+    if (htmlCache[key].validUntil < new Date()) {
+      delete htmlCache[key];
+    }
+  });
+}
+
+function getFromCache(key) {
+  const found = htmlCache[key];
+  if (found) {
+    if (found.validUntil < new Date()) {
+      delete htmlCache[key];
+      return null;
+    }
+  }
+  return found;
+}
 // Render url.
+app.post(async (req, res, next) => {
+
+});
+app.get(async (req, res, next) => {
+
+});
+
 app.use(async (req, res, next) => {
-  let { url, type, filename, authorization,  ...options } = req.query;
+  let { url, type, filename, authorization, ...options } = req.query;
   let post = req.method == "POST";
   let body = req.body;
   if (!url) {
@@ -93,7 +128,7 @@ app.use(async (req, res, next) => {
 // Error page.
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).send("Oops, An expected error seems to have occurred.");
+  res.status(500).send("Oops, Somehting went wrong");
 });
 
 // Create renderer and start server.
@@ -112,6 +147,9 @@ createRenderer({
   .catch((e) => {
     console.error("Fail to initialze renderer.", e);
   });
+
+setInterval(checkCacheValidity, 10000);
+
 
 // Terminate process
 process.on("SIGINT", () => {
