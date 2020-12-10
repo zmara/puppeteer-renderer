@@ -129,30 +129,6 @@ class Renderer {
       await this.closePage(page);
     });
 
-    page.setRequestInterception(true);
-
-    page.on("request", (request) => {
-      const headers = request.headers();
-      const overrides = { headers: headers };
-      if (post == true && request.resourceType() == "document") {
-        overrides.method = "POST";
-        overrides.postData = JSON.stringify(postData);
-        headers["Content-Type"] =  "application/json"
-      }
-      if (authorization != "") {
-        headers["Authorization"] = authorization;
-      }
-      request.continue(overrides);
-    });
-
-    if (emulateMediaType) {
-      await page.emulateMediaType(emulateMediaType);
-    }
-
-    if (credentials) {
-      await page.authenticate(credentials);
-    }
-
     await page.goto(url, {
       timeout: Number(timeout) || 30 * 1000,
       waitUntil: waitUntil || "networkidle2",
