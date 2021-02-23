@@ -57,7 +57,8 @@ class Renderer {
         printBackground,
         landscape
       } = extraOptions;
-      const footerTemplate = body.footerTemplate;
+      const footerTemplateFirst = body.footerTemplateFirst;
+      const footerTemplateOther = body.footerTemplateOther;
       const footerFirstMarginBottom = body.footerFirstMarginBottom;
       const footerOtherMarginBottom = body.footerOtherMarginBottom;
       
@@ -69,7 +70,7 @@ class Renderer {
           printBackground: printBackground === "true",
           landscape: landscape === "true",
           pageRanges: '1',  // start this PDF at page 2
-          footerTemplate: footerTemplate,
+          footerTemplate: footerTemplateFirst,
           margin: { bottom: footerFirstMarginBottom != null ? footerFirstMarginBottom : '35px' },
         });
 
@@ -82,7 +83,7 @@ class Renderer {
             landscape: landscape === "true",
             displayHeaderFooter: true,
             pageRanges: '2-', // start this PDF at page 2
-            footerTemplate: footerTemplate,
+            footerTemplate: footerTemplateOther,
             margin: { bottom: footerOtherMarginBottom != null ? footerOtherMarginBottom : '78px' },
           });
         } catch (ex) {
