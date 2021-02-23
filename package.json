@@ -18,14 +18,15 @@
   },
   "license": "MIT",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "content-disposition": "^0.5.2",
-    "express": "^4.16.3",
     "cors": "^2.8.5",
+    "express": "^4.16.3",
+    "pdf-lib": "^1.16.0",
     "pixelmatch": "^5.2.0",
     "pngjs": "^5.0.0",
     "puppeteer": "^5.5.0",
-    "qs": "^6.9.3",
-    "body-parser": "^1.19.0"
+    "qs": "^6.9.3"
   },
   "devDependencies": {
     "chai": "^4.2.0",

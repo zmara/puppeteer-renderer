@@ -2,7 +2,7 @@
 
 const puppeteer = require("puppeteer");
 const waitForAnimations = require("./wait-for-animations");
-
+const PDFDocument =  require("pdf-lib");
 
 
 class Renderer {
@@ -55,19 +55,72 @@ class Renderer {
         scale = 1.0,
         displayHeaderFooter,
         printBackground,
-        landscape,
+        landscape
       } = extraOptions;
-      const buffer = await page.pdf({
-        ...extraOptions,
-        scale: Number(scale),
-        displayHeaderFooter: displayHeaderFooter === "true",
-        printBackground: printBackground === "true",
-        landscape: landscape === "true",
-      });
-      return buffer;
+      const footerTemplate = body.footerTemplate;
+      const footerFirstMarginBottom = body.footerFirstMarginBottom;
+      const footerOtherMarginBottom = body.footerOtherMarginBottom;
+      
+      if (footerTemplate != null) {
+        const pdf1 = await page.pdf({
+          ...extraOptions,
+          scale: Number(scale),
+          displayHeaderFooter: true,
+          printBackground: printBackground === "true",
+          landscape: landscape === "true",
+          pageRanges: '1',  // start this PDF at page 2
+          footerTemplate: footerTemplate,
+          margin: { bottom: footerFirstMarginBottom != null ? footerFirstMarginBottom : '35px' },
+        });
+
+        let pdf2;
+        try {
+          pdf2 = await page.pdf({
+            ...extraOptions,
+            scale: Number(scale),
+            printBackground: printBackground === "true",
+            landscape: landscape === "true",
+            displayHeaderFooter: true,
+            pageRanges: '2-', // start this PDF at page 2
+            footerTemplate: footerTemplate,
+            margin: { bottom: footerOtherMarginBottom != null ? footerOtherMarginBottom : '78px' },
+          });
+        } catch (ex) {
+          return pdf1;
+        }
+  
+        return this.mergePdfs(pdf1, pdf2);
+      } else {
+        const buffer = await page.pdf({
+          ...extraOptions,
+          scale: Number(scale),
+          displayHeaderFooter: displayHeaderFooter === "true",
+          printBackground: printBackground === "true",
+          landscape: landscape === "true",
+        });
+        return buffer;
+      }
     } finally {
       this.closePage(page);
     }
+  }
+
+  async mergePdfs(pdf1, pdf2) {
+    const pdfDoc = await PDFDocument.PDFDocument.create()
+
+    const coverDoc = await PDFDocument.PDFDocument.load(pdf1)
+    const [coverPage] = await pdfDoc.copyPages(coverDoc, [0])
+    pdfDoc.addPage(coverPage)
+
+    const mainDoc = await PDFDocument.PDFDocument.load(pdf2)
+    for (let i = 0; i < mainDoc.getPageCount(); i++) {
+        const [aMainPage] = await pdfDoc.copyPages(mainDoc, [i])
+        pdfDoc.addPage(aMainPage)
+    }
+
+    const pdfBytes = await pdfDoc.save()
+
+    return Buffer.from(pdfBytes);
   }
 
   async screenshot(url, options = {}, authorization = "", post = true, body = "") {
