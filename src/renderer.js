@@ -59,10 +59,11 @@ class Renderer {
       } = extraOptions;
       const footerTemplateFirst = body.footerTemplateFirst;
       const footerTemplateOther = body.footerTemplateOther;
-      const footerFirstMarginBottom = body.footerFirstMarginBottom;
-      const footerOtherMarginBottom = body.footerOtherMarginBottom;
+      const firstMargin = body.firstMargin;
+      const otherMargin = body.otherMargin;
+      const defaultMargin = body.defaultMargin;
       
-      if (footerTemplate != null) {
+      if (footerTemplateFirst != null && footerTemplateFirst != null) {
         const pdf1 = await page.pdf({
           ...extraOptions,
           scale: Number(scale),
@@ -71,7 +72,7 @@ class Renderer {
           landscape: landscape === "true",
           pageRanges: '1',  // start this PDF at page 2
           footerTemplate: footerTemplateFirst,
-          margin: { bottom: footerFirstMarginBottom != null ? footerFirstMarginBottom : '35px' },
+          margin: firstMargin,
         });
 
         let pdf2;
@@ -84,7 +85,7 @@ class Renderer {
             displayHeaderFooter: true,
             pageRanges: '2-', // start this PDF at page 2
             footerTemplate: footerTemplateOther,
-            margin: { bottom: footerOtherMarginBottom != null ? footerOtherMarginBottom : '78px' },
+            margin: otherMargin,
           });
         } catch (ex) {
           return pdf1;
@@ -98,6 +99,7 @@ class Renderer {
           displayHeaderFooter: displayHeaderFooter === "true",
           printBackground: printBackground === "true",
           landscape: landscape === "true",
+          margin: defaultMargin
         });
         return buffer;
       }
